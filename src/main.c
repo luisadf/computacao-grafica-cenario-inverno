@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #define PI 3.14159265358979323846
-#define MAX_SNOW 700
+#define MAX_SNOW 1000
 #define SNOW_STEP 50
 #define MIN_SNOW 50
 
@@ -504,16 +504,19 @@ static void draw_lamp(float x, float z)
 
 static void draw_present(float x, float z, float size, int red)
 {
-    if (red)
-        color(0.73f, 0.12f, 0.14f);
-    else
-        color(0.16f, 0.40f, 0.58f);
-    box(x, size * 0.5f, z, size, size, size);
-    color(0.95f, 0.73f, 0.28f);
-    box(x, size * 0.5f, z, size * 0.16f, size * 1.02f, size * 1.02f);
-    box(x, size * 0.5f, z, size * 1.02f, size * 1.02f, size * 0.16f);
-    sphere(x - size * 0.12f, size * 1.07f, z, size * 0.13f, 10);
-    sphere(x + size * 0.12f, size * 1.07f, z, size * 0.13f, 10);
+    if (ornaments)
+    {
+        if (red)
+            color(0.73f, 0.12f, 0.14f);
+        else
+            color(0.16f, 0.40f, 0.58f);
+        box(x, size * 0.5f, z, size, size, size);
+        color(0.95f, 0.73f, 0.28f);
+        box(x, size * 0.5f, z, size * 0.16f, size * 1.02f, size * 1.02f);
+        box(x, size * 0.5f, z, size * 1.02f, size * 1.02f, size * 0.16f);
+        sphere(x - size * 0.12f, size * 1.07f, z, size * 0.13f, 10);
+        sphere(x + size * 0.12f, size * 1.07f, z, size * 0.13f, 10);
+    }
 }
 
 static void draw_chimney_smoke(float x, float z, float scale)
