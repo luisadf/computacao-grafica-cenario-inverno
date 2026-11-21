@@ -63,8 +63,8 @@ leitura:
 3. **Construção da aldeia:** `draw_ground` desenha um terreno grande em pequenas
    partes; `draw_path` acrescenta os caminhos. `draw_house` reutiliza a mesma
    casa em três posições e tamanhos. Bancos, postes, cercas e presentes
-   completam a aldeia. Os caminhos usam transparência nas bordas para se
-   misturar à neve.
+   completam a aldeia. Os caminhos seguem pontos de referência ao redor dos
+   objetos, com curvas suaves e bordas transparentes que se misturam à neve.
 4. **Montanhas e árvore:** `draw_mountain` constrói anéis irregulares para
    formar montanhas arredondadas e colori-las de neve no alto. `draw_pine`
    preserva o formato da árvore e usa o tempo de animação para alternar as

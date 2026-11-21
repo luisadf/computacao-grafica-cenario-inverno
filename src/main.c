@@ -97,14 +97,27 @@ static void set_emission(float r, float g, float b)
     glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emission);
 }
 
-static void draw_path(float x1, float z1, float x2, float z2, float bend)
+typedef struct
 {
-    int i, band;
-    float dx = x2 - x1;
-    float dz = z2 - z1;
-    float length = sqrtf(dx * dx + dz * dz);
-    float nx = -dz / length;
-    float nz = dx / length;
+    float x, z;
+} PathPoint;
+
+static float path_value(float a, float b, float c, float d, float t)
+{
+    return 0.5f * (2.0f * b + (c - a) * t +
+                   (2.0f * a - 5.0f * b + 4.0f * c - d) * t * t +
+                   (-a + 3.0f * b - 3.0f * c + d) * t * t * t);
+}
+
+static float path_tangent(float a, float b, float c, float d, float t)
+{
+    return 0.5f * (c - a + 2.0f * (2.0f * a - 5.0f * b + 4.0f * c - d) * t +
+                   3.0f * (-a + 3.0f * b - 3.0f * c + d) * t * t);
+}
+
+static void draw_path(const PathPoint *points, int count)
+{
+    int i, band, segment;
     const float edge_position[] = {-1.0f, -0.55f, 0.55f, 1.0f};
     const float edge_alpha[] = {0.0f, 0.30f, 0.30f, 0.0f};
 
@@ -115,23 +128,33 @@ static void draw_path(float x1, float z1, float x2, float z2, float bend)
     for (band = 0; band < 3; ++band)
     {
         glBegin(GL_TRIANGLE_STRIP);
-        for (i = 0; i <= 40; ++i)
+        for (segment = 0; segment < count - 1; ++segment)
         {
-            int edge;
-            float t = i / 40.0f;
-            float curve = bend * sinf((float)PI * t) +
-                          0.12f * sinf(3.0f * (float)PI * t);
-            float width = 0.95f + 0.10f * sinf(t * 14.0f + x1);
-            float x = x1 + dx * t + nx * curve;
-            float z = z1 + dz * t + nz * curve;
-            for (edge = band; edge <= band + 1; ++edge)
+            PathPoint a = points[segment > 0 ? segment - 1 : segment];
+            PathPoint b = points[segment];
+            PathPoint c = points[segment + 1];
+            PathPoint d = points[segment + 2 < count ? segment + 2 : segment + 1];
+            for (i = 0; i <= 24; ++i)
             {
-                if (night)
-                    glColor4f(0.31f, 0.39f, 0.52f, edge_alpha[edge]);
-                else
-                    glColor4f(0.57f, 0.67f, 0.72f, edge_alpha[edge]);
-                glVertex3f(x + nx * width * edge_position[edge], 0.025f,
-                           z + nz * width * edge_position[edge]);
+                int edge;
+                float t = i / 24.0f;
+                float x = path_value(a.x, b.x, c.x, d.x, t);
+                float z = path_value(a.z, b.z, c.z, d.z, t);
+                float dx = path_tangent(a.x, b.x, c.x, d.x, t);
+                float dz = path_tangent(a.z, b.z, c.z, d.z, t);
+                float length = sqrtf(dx * dx + dz * dz);
+                float nx = -dz / length;
+                float nz = dx / length;
+                float width = 0.85f + 0.08f * sinf((segment + t) * 2.0f);
+                for (edge = band; edge <= band + 1; ++edge)
+                {
+                    if (night)
+                        glColor4f(0.31f, 0.39f, 0.52f, edge_alpha[edge]);
+                    else
+                        glColor4f(0.57f, 0.67f, 0.72f, edge_alpha[edge]);
+                    glVertex3f(x + nx * width * edge_position[edge], 0.025f,
+                               z + nz * width * edge_position[edge]);
+                }
             }
         }
         glEnd();
@@ -144,6 +167,17 @@ static void draw_path(float x1, float z1, float x2, float z2, float bend)
 static void draw_ground(void)
 {
     int x, z;
+    static const PathPoint village_path[] = {
+        {-9.8f, -5.2f}, {-9.8f, -2.3f}, {-7.3f, 0.15f},
+        {-6.3f, 0.75f}, {-3.2f, 0.75f}, {-2.0f, 2.0f}, {2.6f, 2.0f}};
+    static const PathPoint house_entrance[] = {
+        {-3.2f, 0.15f}, {-3.2f, 0.75f}};
+    static const PathPoint foreground_path[] = {
+        {-2.0f, 2.0f}, {-2.0f, 5.0f}, {-1.6f, 8.0f}, {-1.0f, 11.0f}};
+    static const PathPoint tree_path[] = {
+        {8.5f, -4.1f}, {8.5f, -2.8f}, {7.0f, -2.8f}, {6.3f, -1.7f},
+        {6.3f, -0.3f}, {6.9f, 1.3f}, {7.4f, 3.0f}, {7.2f, 5.0f},
+        {4.0f, 5.0f}, {2.6f, 2.0f}};
     color(0.91f, 0.95f, 0.96f);
     glNormal3f(0.0f, 1.0f, 0.0f);
     glBegin(GL_QUADS);
@@ -159,11 +193,10 @@ static void draw_ground(void)
     }
     glEnd();
 
-    draw_path(-3.2f, 0.0f, -2.0f, 2.6f, 0.15f);
-    draw_path(-9.8f, -5.2f, -2.0f, 2.6f, -0.8f);
-    draw_path(8.5f, -4.1f, 3.0f, 2.6f, 0.9f);
-    draw_path(-2.0f, 2.6f, 3.0f, 2.6f, 0.25f);
-    draw_path(-2.0f, 2.6f, -1.0f, 11.0f, 0.7f);
+    draw_path(village_path, (int)(sizeof(village_path) / sizeof(village_path[0])));
+    draw_path(house_entrance, (int)(sizeof(house_entrance) / sizeof(house_entrance[0])));
+    draw_path(foreground_path, (int)(sizeof(foreground_path) / sizeof(foreground_path[0])));
+    draw_path(tree_path, (int)(sizeof(tree_path) / sizeof(tree_path[0])));
 }
 
 static void draw_mountain(float x, float z, float radius, float height)
@@ -178,8 +211,7 @@ static void draw_mountain(float x, float z, float radius, float height)
         for (side = 0; side <= sides; ++side)
         {
             float a = (float)(2.0 * PI * side / sides);
-            float uneven = 1.0f + 0.13f * sinf(3.0f * a + x)
-                           + 0.06f * cosf(5.0f * a + z);
+            float uneven = 1.0f + 0.13f * sinf(3.0f * a + x) + 0.06f * cosf(5.0f * a + z);
             for (edge = 0; edge <= 1; ++edge)
             {
                 float t = (ring + edge) / (float)rings;
@@ -225,8 +257,7 @@ static void draw_pine(float x, float z, float scale, int decorated)
                 float h = 0.27f + 0.15f * (j % 2);
                 float r = radius * (1.0f - h / 1.55f) + 0.03f;
                 static const float lights[4][3] = {
-                    {1.0f, 0.12f, 0.08f}, {1.0f, 0.75f, 0.12f},
-                    {0.15f, 0.45f, 1.0f}, {0.18f, 1.0f, 0.28f}};
+                    {1.0f, 0.12f, 0.08f}, {1.0f, 0.75f, 0.12f}, {0.15f, 0.45f, 1.0f}, {0.18f, 1.0f, 0.28f}};
                 const float *bulb = lights[(j + i) % 4];
                 int lit = ((int)(animation_time * 2.0f) + i + j) % 2 == 0;
                 float strength = lit ? 0.75f : 0.08f;
@@ -498,7 +529,8 @@ static void draw_chimney_smoke(float x, float z, float scale)
     for (puff = 0; puff < 6; ++puff)
     {
         float progress = fmodf(animation_time * 0.12f + puff / 6.0f +
-                               fabsf(x) * 0.03f, 1.0f);
+                                   fabsf(x) * 0.03f,
+                               1.0f);
         float radius = scale * (0.18f + 0.38f * progress);
         float alpha = 0.30f * sinf((float)PI * progress);
         glPushMatrix();
@@ -531,7 +563,7 @@ static void draw_sky_details(void)
     if (night)
     {
         color(0.95f, 0.96f, 0.80f);
-        sphere(-27.0f, 30.0f, -65.0f, 2.8f, 20);
+        sphere(-4.0f, 12.0f, -65.0f, 2.8f, 20);
         glPointSize(2.5f);
         glBegin(GL_POINTS);
         for (i = 0; i < 65; ++i)
@@ -546,7 +578,7 @@ static void draw_sky_details(void)
     else
     {
         color(1.0f, 0.90f, 0.58f);
-        sphere(-27.0f, 30.0f, -65.0f, 3.2f, 20);
+        sphere(-4.0f, 12.0f, -65.0f, 3.2f, 20);
     }
     glEnable(GL_LIGHTING);
 }
@@ -625,9 +657,7 @@ static void display(void)
     GLfloat fog_day[] = {0.53f, 0.76f, 0.87f, 1.0f};
     GLfloat fog_night[] = {0.035f, 0.065f, 0.15f, 1.0f};
     GLfloat village_lights[5][4] = {
-        {-3.2f, 2.0f, 0.0f, 1.0f}, {-9.8f, 1.6f, -5.4f, 1.0f},
-        {8.5f, 1.7f, -4.3f, 1.0f}, {-5.6f, 3.0f, 2.1f, 1.0f},
-        {5.8f, 3.0f, 3.0f, 1.0f}};
+        {-3.2f, 2.0f, 0.0f, 1.0f}, {-9.8f, 1.6f, -5.4f, 1.0f}, {8.5f, 1.7f, -4.3f, 1.0f}, {-5.6f, 3.0f, 2.1f, 1.0f}, {5.8f, 3.0f, 3.0f, 1.0f}};
 
     if (night)
         glClearColor(0.035f, 0.065f, 0.15f, 1.0f);
