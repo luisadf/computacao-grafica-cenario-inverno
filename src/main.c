@@ -168,16 +168,13 @@ static void draw_ground(void)
 {
     int x, z;
     static const PathPoint village_path[] = {
-        {-9.8f, -5.2f}, {-9.8f, -2.3f}, {-7.3f, 0.15f},
-        {-6.3f, 0.75f}, {-3.2f, 0.75f}, {-2.0f, 2.0f}, {2.6f, 2.0f}};
+        {-9.8f, -5.2f}, {-9.8f, -2.3f}, {-7.3f, 0.15f}, {-6.3f, 0.75f}, {-3.2f, 0.75f}, {-2.0f, 2.0f}, {2.6f, 2.0f}};
     static const PathPoint house_entrance[] = {
         {-3.2f, 0.15f}, {-3.2f, 0.75f}};
     static const PathPoint foreground_path[] = {
         {-2.0f, 2.0f}, {-2.0f, 5.0f}, {-1.6f, 8.0f}, {-1.0f, 11.0f}};
     static const PathPoint tree_path[] = {
-        {8.5f, -4.1f}, {8.5f, -2.8f}, {7.0f, -2.8f}, {6.3f, -1.7f},
-        {6.3f, -0.3f}, {6.9f, 1.3f}, {7.4f, 3.0f}, {7.2f, 5.0f},
-        {4.0f, 5.0f}, {2.6f, 2.0f}};
+        {8.5f, -4.1f}, {8.5f, -2.8f}, {7.0f, -2.8f}, {6.3f, -1.7f}, {6.3f, -0.3f}, {6.9f, 1.3f}, {7.4f, 3.0f}, {7.2f, 5.0f}, {4.0f, 5.0f}, {2.6f, 2.0f}};
     color(0.91f, 0.95f, 0.96f);
     glNormal3f(0.0f, 1.0f, 0.0f);
     glBegin(GL_QUADS);
@@ -563,7 +560,7 @@ static void draw_sky_details(void)
     if (night)
     {
         color(0.95f, 0.96f, 0.80f);
-        sphere(-4.0f, 12.0f, -65.0f, 2.8f, 20);
+        sphere(20.0f, 16.0f, -65.0f, 2.8f, 20);
         glPointSize(2.5f);
         glBegin(GL_POINTS);
         for (i = 0; i < 65; ++i)
@@ -578,7 +575,7 @@ static void draw_sky_details(void)
     else
     {
         color(1.0f, 0.90f, 0.58f);
-        sphere(-4.0f, 12.0f, -65.0f, 3.2f, 20);
+        sphere(20.0f, 16.0f, -65.0f, 3.2f, 20);
     }
     glEnable(GL_LIGHTING);
 }
