@@ -63,7 +63,8 @@ leitura:
 3. **Construção da aldeia:** `draw_ground` desenha um terreno grande em pequenas
    partes; `draw_path` acrescenta os caminhos. `draw_house` reutiliza a mesma
    casa em três posições e tamanhos. Bancos, postes, cercas e presentes
-   completam a aldeia.
+   completam a aldeia. Os caminhos usam transparência nas bordas para se
+   misturar à neve.
 4. **Montanhas e árvore:** `draw_mountain` constrói anéis irregulares para
    formar montanhas arredondadas e colori-las de neve no alto. `draw_pine`
    preserva o formato da árvore e usa o tempo de animação para alternar as
@@ -80,6 +81,8 @@ leitura:
    decorrido; ao chegar ao chão, cada floco reaparece no alto. `draw_snow`
    desenha a quantidade selecionada como pontos brancos. Ao desligar a neve,
    os flocos também ficam pausados, mas o pisca-pisca continua funcionando.
+   `draw_chimney_smoke` usa o mesmo tempo de animação para fazer a fumaça
+   clara subir e desaparecer, mesmo quando a neve está desligada.
 8. **Interação:** `keyboard` trata letras, intensidade e saída; `special_keys`
    trata setas e zoom. `draw_hud` mostra um resumo dos comandos na janela.
 9. **Inicialização:** `main` configura a janela, a profundidade, a iluminação

@@ -99,26 +99,46 @@ static void set_emission(float r, float g, float b)
 
 static void draw_path(float x1, float z1, float x2, float z2, float bend)
 {
-    int i;
+    int i, band;
     float dx = x2 - x1;
     float dz = z2 - z1;
     float length = sqrtf(dx * dx + dz * dz);
     float nx = -dz / length;
     float nz = dx / length;
-    color(0.68f, 0.75f, 0.79f);
-    glNormal3f(0.0f, 1.0f, 0.0f);
-    glBegin(GL_TRIANGLE_STRIP);
-    for (i = 0; i <= 30; ++i)
+    const float edge_position[] = {-1.0f, -0.55f, 0.55f, 1.0f};
+    const float edge_alpha[] = {0.0f, 0.30f, 0.30f, 0.0f};
+
+    glDisable(GL_LIGHTING);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
+    for (band = 0; band < 3; ++band)
     {
-        float t = i / 30.0f;
-        float curve = bend * sinf((float)PI * t);
-        float width = 0.62f + 0.06f * sinf(t * 19.0f);
-        float x = x1 + dx * t + nx * curve;
-        float z = z1 + dz * t + nz * curve;
-        glVertex3f(x + nx * width, 0.025f, z + nz * width);
-        glVertex3f(x - nx * width, 0.025f, z - nz * width);
+        glBegin(GL_TRIANGLE_STRIP);
+        for (i = 0; i <= 40; ++i)
+        {
+            int edge;
+            float t = i / 40.0f;
+            float curve = bend * sinf((float)PI * t) +
+                          0.12f * sinf(3.0f * (float)PI * t);
+            float width = 0.95f + 0.10f * sinf(t * 14.0f + x1);
+            float x = x1 + dx * t + nx * curve;
+            float z = z1 + dz * t + nz * curve;
+            for (edge = band; edge <= band + 1; ++edge)
+            {
+                if (night)
+                    glColor4f(0.31f, 0.39f, 0.52f, edge_alpha[edge]);
+                else
+                    glColor4f(0.57f, 0.67f, 0.72f, edge_alpha[edge]);
+                glVertex3f(x + nx * width * edge_position[edge], 0.025f,
+                           z + nz * width * edge_position[edge]);
+            }
+        }
+        glEnd();
     }
-    glEnd();
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
+    glEnable(GL_LIGHTING);
 }
 
 static void draw_ground(void)
@@ -468,6 +488,42 @@ static void draw_present(float x, float z, float size, int red)
     sphere(x + size * 0.12f, size * 1.07f, z, size * 0.13f, 10);
 }
 
+static void draw_chimney_smoke(float x, float z, float scale)
+{
+    int puff, vertex;
+    glDisable(GL_LIGHTING);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
+    for (puff = 0; puff < 6; ++puff)
+    {
+        float progress = fmodf(animation_time * 0.12f + puff / 6.0f +
+                               fabsf(x) * 0.03f, 1.0f);
+        float radius = scale * (0.18f + 0.38f * progress);
+        float alpha = 0.30f * sinf((float)PI * progress);
+        glPushMatrix();
+        glTranslatef(x + scale * (1.08f + 0.3f * progress),
+                     scale * (4.88f + 2.7f * progress),
+                     z - scale * 0.55f);
+        glRotatef(camera_angle, 0.0f, 1.0f, 0.0f);
+        glRotatef(-camera_height, 1.0f, 0.0f, 0.0f);
+        glBegin(GL_TRIANGLE_FAN);
+        glColor4f(0.83f, 0.88f, 0.91f, alpha);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glColor4f(0.83f, 0.88f, 0.91f, 0.0f);
+        for (vertex = 0; vertex <= 24; ++vertex)
+        {
+            float a = (float)(2.0 * PI * vertex / 24.0);
+            glVertex3f(radius * cosf(a), radius * sinf(a), 0.0f);
+        }
+        glEnd();
+        glPopMatrix();
+    }
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
+    glEnable(GL_LIGHTING);
+}
+
 static void draw_sky_details(void)
 {
     int i;
@@ -630,6 +686,9 @@ static void display(void)
     draw_bench(10.0f, 1.0f, 15.0f);
     draw_lamp(-5.6f, 2.1f);
     draw_lamp(5.8f, 3.0f);
+    draw_chimney_smoke(-3.2f, -2.0f, 1.0f);
+    draw_chimney_smoke(-9.8f, -7.0f, 0.8f);
+    draw_chimney_smoke(8.5f, -6.0f, 0.85f);
     draw_snow();
     glDisable(GL_FOG);
     draw_hud();
