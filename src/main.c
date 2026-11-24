@@ -1,3 +1,10 @@
+/* Integrantes
+ * - Luísa de Almeida Figueiredo -1230205121
+ * - Felipe Brum Barbosa -1230111076
+ * - Cesar Alberto Medina Neto -1230111289
+ * - Ricardo Adelino dos Santos Macedo -1230201994
+ */
+
 #include <GL/freeglut.h>
 #include <math.h>
 #include <stdio.h>
