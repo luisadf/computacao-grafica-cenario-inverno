@@ -33,6 +33,7 @@ static float camera_height = 22.0f;
 static float camera_distance = 31.0f;
 static int window_width = 1100;
 static int window_height = 720;
+static int window_id = 0;
 static int previous_time = 0;
 static float animation_time = 0.0f;
 
@@ -780,6 +781,7 @@ static void keyboard(unsigned char key, int x, int y)
             snow_count -= SNOW_STEP;
         break;
     case 27:
+        window_id = 0;
         glutLeaveMainLoop();
         return;
     default:
@@ -829,9 +831,13 @@ static void special_keys(int key, int x, int y)
 static void timer(int value)
 {
     int i;
-    int now = glutGet(GLUT_ELAPSED_TIME);
-    float dt = (now - previous_time) / 1000.0f;
+    int now;
+    float dt;
     (void)value;
+    if (window_id == 0)
+        return;
+    now = glutGet(GLUT_ELAPSED_TIME);
+    dt = (now - previous_time) / 1000.0f;
     previous_time = now;
     if (dt < 0.0f)
         dt = 0.0f;
@@ -848,8 +854,13 @@ static void timer(int value)
                 reset_snowflake(&snow[i], 0);
         }
     }
-    glutPostRedisplay();
+    glutPostWindowRedisplay(window_id);
     glutTimerFunc(16, timer, 0);
+}
+
+static void close_window(void)
+{
+    window_id = 0;
 }
 
 int main(int argc, char **argv)
@@ -861,7 +872,7 @@ int main(int argc, char **argv)
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(window_width, window_height);
-    glutCreateWindow("Cenario de Inverno 3D");
+    window_id = glutCreateWindow("Cenario de Inverno 3D");
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
@@ -874,6 +885,7 @@ int main(int argc, char **argv)
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
     glutSpecialFunc(special_keys);
+    glutCloseFunc(close_window);
     previous_time = glutGet(GLUT_ELAPSED_TIME);
     glutTimerFunc(16, timer, 0);
     glutMainLoop();
