@@ -1,4 +1,17 @@
-/* Integrantes
+/* COMPUTAÇÃO GRÁFICA - UVA
+ *
+ * Projeto: Cenário de inverno
+ *
+ * Bibliotecas:
+ * OpenGL, GLU e FreeGLUT
+ *
+ * Comando para compilação (GCC/MinGW):
+ * gcc -std=c99 -Wall -Wextra -O2 src\main.c -o cenario_inverno.exe -lfreeglut -lopengl32 -lglu32 -lm
+ *
+ * Para executar:
+ * .\cenario_inverno.exe
+ *
+ * Integrantes:
  * - Luísa de Almeida Figueiredo -1230205121
  * - Felipe Brum Barbosa -1230111076
  * - Cesar Alberto Medina Neto -1230111289
